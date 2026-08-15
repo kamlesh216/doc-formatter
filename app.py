@@ -39,6 +39,26 @@ st.markdown("""
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         margin-bottom: 20px;
     }
+    
+    /* Mobile-first Responsive Adjustments */
+    @media (max-width: 640px) {
+        .title-text {
+            font-size: 1.6rem !important;
+            margin-top: 5px !important;
+        }
+        .subtitle-text {
+            font-size: 0.9rem !important;
+            margin-bottom: 20px !important;
+        }
+        .card {
+            padding: 12px 15px !important;
+            margin-bottom: 15px !important;
+        }
+        .stDownloadButton button {
+            padding: 10px !important;
+            font-size: 0.95rem !important;
+        }
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -48,19 +68,22 @@ st.markdown("<p class='subtitle-text'>Make your academic document clean and form
 # 2. Concurrency defensive check (Limit file size)
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
-# Sidebar Configuration Settings
-st.sidebar.markdown("### Formatting Options")
-st.sidebar.write("Customize formatting rules to apply to the body paragraphs:")
-remove_shading = st.sidebar.checkbox("Remove Copy-Paste Shading & Highlights", value=True)
-remove_bold = st.sidebar.checkbox("Remove Leftover Bold Words", value=True)
-force_black = st.sidebar.checkbox("Force Black Headings", value=True)
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("### Document Specifications")
-st.sidebar.markdown(f"**Font family**: {config.BODY_FONT}")
-st.sidebar.markdown(f"**Font size**: Arial 12pt")
-st.sidebar.markdown(f"**Line spacing**: 1.5 Lines")
-st.sidebar.markdown(f"**Alignment**: Justified")
+# Collapsible Inline Settings (Perfect for Mobile and Clean Desktop Centered look)
+with st.expander("⚙️ Customize Formatting Options", expanded=False):
+    st.markdown("#### Formatting Rules")
+    remove_shading = st.checkbox("Remove Copy-Paste Shading & Highlights", value=True)
+    remove_bold = st.checkbox("Remove Leftover Bold Words", value=True)
+    force_black = st.checkbox("Force Black Headings (Recommended)", value=True)
+    
+    st.markdown("---")
+    st.markdown("#### Enforced Specifications")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"**Font family**: {config.BODY_FONT}")
+        st.markdown(f"**Font size**: Arial 12pt")
+    with col2:
+        st.markdown(f"**Line spacing**: 1.5 Lines")
+        st.markdown(f"**Alignment**: Justified")
 
 # 3. File Uploader Box (Browse files / Drag-and-drop)
 st.markdown("<div class='card'>", unsafe_allow_html=True)
