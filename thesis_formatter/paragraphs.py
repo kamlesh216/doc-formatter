@@ -69,15 +69,26 @@ def _format_body(para: Paragraph) -> None:
     para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     set_widow_control(para, True)
 
+    # Reset left/right indents to 0 (clear copy-paste indents)
+    para.paragraph_format.left_indent = 0
+    para.paragraph_format.right_indent = 0
+
     # Strip background shading / theme fill / text highlights from copy-paste
     if getattr(config, "REMOVE_BODY_SHADING", True):
         strip_para_shading_and_highlight(para)
 
     # Clean run text, reset discolored text colors, and strip unwanted bold (w:b, w:bCs, rStyle)
     remove_bold = getattr(config, "REMOVE_BODY_BOLD", True)
+
+    # Smart bold stripping: if ALL runs in a body paragraph are bold,
+    # this is likely an inline sub-heading (e.g., "At initial stage") — PRESERVE its bold.
+    text_runs = [r for r in para.runs if r.text and r.text.strip()]
+    all_bold = bool(text_runs) and all(r.bold for r in text_runs)
+    effective_remove_bold = remove_bold and not all_bold
+
     for run in para.runs:
         clean_run_text(run)
-        strip_body_run_formatting(run, remove_bold=remove_bold)
+        strip_body_run_formatting(run, remove_bold=effective_remove_bold)
 
     # Normalize spaces across paragraph runs (non-breaking \xa0, multi-spaces, cross-run double spaces)
     normalize_para_spaces(para)

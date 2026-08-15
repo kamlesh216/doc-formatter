@@ -74,7 +74,7 @@ def _format_chapter(para: Paragraph) -> None:
     # Font
     apply_font_to_para_runs(para, config.HEADING_FONT, config.CHAPTER_SIZE)
     _set_runs_bold(para, True)
-    _set_heading_color(para, "Heading 1")
+    _force_heading_color_black(para)
 
 
 def _format_h1(para: Paragraph) -> None:
@@ -92,7 +92,7 @@ def _format_h1(para: Paragraph) -> None:
     set_keep_with_next(para, True)
     apply_font_to_para_runs(para, config.HEADING_FONT, config.HEADING1_SIZE)
     _set_runs_bold(para, True)
-    _set_heading_color(para, "Heading 1")
+    _force_heading_color_black(para)
 
 
 def _format_h2(para: Paragraph) -> None:
@@ -110,7 +110,7 @@ def _format_h2(para: Paragraph) -> None:
     set_keep_with_next(para, True)
     apply_font_to_para_runs(para, config.HEADING_FONT, config.HEADING2_SIZE)
     _set_runs_bold(para, True)
-    _set_heading_color(para, "Heading 2")
+    _force_heading_color_black(para)
 
 
 def _format_h3(para: Paragraph) -> None:
@@ -130,7 +130,7 @@ def _format_h3(para: Paragraph) -> None:
     _set_runs_bold(para, True)
     if config.HEADING3_ITALIC:
         _set_runs_italic(para, True)
-    _set_heading_color(para, "Heading 3")
+    _force_heading_color_black(para)
 
 
 # ---------------------------------------------------------------------------
@@ -149,26 +149,28 @@ def _set_style_safe(para: Paragraph, style_name: str) -> None:
 
 
 def _set_runs_bold(para: Paragraph, bold: bool) -> None:
+    """Force-set bold on all runs — including runs where bold was explicitly set False."""
     for run in para.runs:
-        if run.bold is None:
-            run.bold = bold
+        run.bold = bold
 
 
 def _set_runs_italic(para: Paragraph, italic: bool) -> None:
+    """Force-set italic on all runs."""
     for run in para.runs:
-        if run.italic is None:
-            run.italic = italic
+        run.italic = italic
 
 
-def _set_heading_color(para: Paragraph, key: str) -> None:
-    hex_color = config.HEADING_COLORS.get(key)
-    if not hex_color:
+def _force_heading_color_black(para: Paragraph) -> None:
+    """
+    Explicitly set the color of all runs in a heading paragraph to black.
+    Word's built-in styles (Heading 2, 3, 4) default to blue.
+    Setting the run-level font color to RGBColor(0, 0, 0) overrides this.
+    """
+    if not getattr(config, "FORCE_HEADINGS_BLACK", True):
         return
-    color = RGBColor.from_string(hex_color)
     for run in para.runs:
         try:
-            if run.font.color.rgb is None:
-                run.font.color.rgb = color
+            run.font.color.rgb = RGBColor(0, 0, 0)
         except Exception:
             pass
 

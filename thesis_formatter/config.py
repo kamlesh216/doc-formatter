@@ -30,6 +30,8 @@ BODY_SPACE_BEFORE  = Pt(0)
 BODY_SPACE_AFTER   = Pt(6)
 REMOVE_BODY_BOLD   = True       # strip unwanted bold from regular body paragraphs
 REMOVE_BODY_SHADING = True      # strip background shading and text highlight from copy-pasted body text
+FORCE_HEADINGS_BLACK = True     # force all headings to render in black color instead of Word theme's blue
+
 
 # ---------------------------------------------------------------------------
 # Heading fonts & sizes
@@ -58,13 +60,8 @@ HEADING3_ITALIC      = True
 HEADING3_SPACE_BEFORE = Pt(8)
 HEADING3_SPACE_AFTER  = Pt(4)
 
-# Heading colors  (None = inherit / black)
-HEADING_COLORS = {
-    "Chapter":   "1F4E79",
-    "Heading 1": "1F4E79",
-    "Heading 2": "2E74B5",
-    "Heading 3": "2E74B5",
-}
+# Heading colors  ("&" means inherit / use Word's default black)
+HEADING_COLORS = {}  # Empty = keep headings black (no forced color)
 
 # ---------------------------------------------------------------------------
 # Captions

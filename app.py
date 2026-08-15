@@ -53,6 +53,7 @@ st.sidebar.markdown("### Formatting Options")
 st.sidebar.write("Customize formatting rules to apply to the body paragraphs:")
 remove_shading = st.sidebar.checkbox("Remove Copy-Paste Shading & Highlights", value=True)
 remove_bold = st.sidebar.checkbox("Remove Leftover Bold Words", value=True)
+force_black = st.sidebar.checkbox("Force Black Headings", value=True)
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### Document Specifications")
@@ -77,49 +78,49 @@ if uploaded_file is not None:
     else:
         st.info("✓ Document uploaded successfully.")
         
-        # Trigger Formatting Button
-        if st.button("✨ Clean and Formatting document", use_container_width=True):
-            with st.spinner("Processing formatting... (Runs cleaning utilities, alignment, margins)"):
-                try:
-                    # Apply User Config Checklist dynamically
-                    config.REMOVE_BODY_SHADING = remove_shading
-                    config.REMOVE_BODY_BOLD = remove_bold
-                    
-                    # Read uploaded file stream into memory
-                    input_stream = io.BytesIO(uploaded_file.read())
-                    output_stream = io.BytesIO()
-                    
-                    # Run formatting orchestrator in RAM
-                    report = format_document(
-                        input_path=input_stream,
-                        output_path=output_stream
-                    )
-                    
-                    # Move to start of stream for download trigger
-                    output_stream.seek(0)
-                    
-                    st.success("🎉 Formatting complete!")
-                    
-                    # Display brief statistics card
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("Paragraphs processed", report.para_count)
-                    with col2:
-                        st.metric("Tables formatted", report.tables_formatted)
-                    with col3:
-                        st.metric("Excess spaces removed", report.blanks_removed)
-                    
-                    st.markdown("---")
-                    
-                    # 4. Download Trigger (RAM stream download, automatically deleted on page refresh)
-                    st.download_button(
-                        label="📥 Download Formatted DOCX File",
-                        data=output_stream,
-                        file_name=f"Formatted_{uploaded_file.name}",
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                        use_container_width=True
-                    )
-                    
-                except Exception as e:
-                    st.error(f"Error styling the document: {str(e)}")
-                    st.write("Please ensure the document is not corrupted or password-protected.")
+        # Auto-run processing on upload/config change
+        with st.spinner("Processing formatting... (Runs cleaning utilities, alignment, margins)"):
+            try:
+                # Apply User Config Checklist dynamically
+                config.REMOVE_BODY_SHADING = remove_shading
+                config.REMOVE_BODY_BOLD = remove_bold
+                config.FORCE_HEADINGS_BLACK = force_black
+                
+                # Read uploaded file stream into memory
+                input_stream = io.BytesIO(uploaded_file.read())
+                output_stream = io.BytesIO()
+                
+                # Run formatting orchestrator in RAM
+                report = format_document(
+                    input_path=input_stream,
+                    output_path=output_stream
+                )
+                
+                # Move to start of stream for download trigger
+                output_stream.seek(0)
+                
+                st.success("🎉 Formatting complete! (Please check the formatting once from your side after downloading)")
+                
+                # Display brief statistics card
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Paragraphs processed", report.para_count)
+                with col2:
+                    st.metric("Tables formatted", report.tables_formatted)
+                with col3:
+                    st.metric("Excess spaces removed", report.blanks_removed)
+                
+                st.markdown("---")
+                
+                # 4. Download Trigger (RAM stream download, automatically deleted on page refresh)
+                st.download_button(
+                    label="📥 Download Formatted DOCX File",
+                    data=output_stream,
+                    file_name=f"Formatted_{uploaded_file.name}",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
+                )
+                
+            except Exception as e:
+                st.error(f"Error styling the document: {str(e)}")
+                st.write("Please ensure the document is not corrupted or password-protected.")
