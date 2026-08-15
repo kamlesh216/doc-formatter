@@ -17,6 +17,7 @@ from .utils import (
     apply_font_to_para_runs,
     set_keep_with_next,
     set_para_spacing,
+    strip_para_shading_and_highlight,
 )
 
 log = logging.getLogger(__name__)
@@ -49,6 +50,8 @@ def format_captions(doc: Document, analysis: DocAnalysis) -> int:
 
 
 def _format_caption(para: Paragraph) -> None:
+    if getattr(config, "REMOVE_BODY_SHADING", True):
+        strip_para_shading_and_highlight(para)
     para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
     set_para_spacing(
         para,

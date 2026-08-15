@@ -58,6 +58,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Skip post-save validation.",
     )
     parser.add_argument(
+        "--keep-body-bold",
+        action="store_true",
+        default=False,
+        help="Keep bold formatting in regular body text paragraphs.",
+    )
+    parser.add_argument(
+        "--keep-shading",
+        action="store_true",
+        default=False,
+        help="Keep background shading/highlighting in body paragraphs.",
+    )
+    parser.add_argument(
         "-v", "--verbose",
         action="store_true",
         default=False,
@@ -93,8 +105,14 @@ def main(argv=None) -> int:
 
     # Import here so CLI starts fast even if deps missing
     try:
+        from thesis_formatter import config
         from thesis_formatter.formatter import format_document
         from thesis_formatter.validator import validate, print_validation
+
+        if args.keep_body_bold:
+            config.REMOVE_BODY_BOLD = False
+        if args.keep_shading:
+            config.REMOVE_BODY_SHADING = False
     except ImportError as exc:
         print(f"Import error: {exc}\nRun: pip install -r requirements.txt",
               file=sys.stderr)

@@ -25,6 +25,7 @@ from .utils import (
     set_para_spacing,
     set_para_alignment,
     set_widow_control,
+    strip_para_shading_and_highlight,
 )
 
 log = logging.getLogger(__name__)
@@ -55,6 +56,8 @@ def format_headings(doc: Document, analysis: DocAnalysis) -> int:
 # ---------------------------------------------------------------------------
 
 def _format_chapter(para: Paragraph) -> None:
+    if getattr(config, "REMOVE_BODY_SHADING", True):
+        strip_para_shading_and_highlight(para)
     # Ensure Heading 1 style (carries TOC + numbering anchors)
     _set_style_safe(para, "Heading 1")
     pf = para.paragraph_format
@@ -75,6 +78,8 @@ def _format_chapter(para: Paragraph) -> None:
 
 
 def _format_h1(para: Paragraph) -> None:
+    if getattr(config, "REMOVE_BODY_SHADING", True):
+        strip_para_shading_and_highlight(para)
     _set_style_safe(para, "Heading 2")
     pf = para.paragraph_format
     pf.alignment = WD_ALIGN_PARAGRAPH.LEFT
@@ -91,6 +96,8 @@ def _format_h1(para: Paragraph) -> None:
 
 
 def _format_h2(para: Paragraph) -> None:
+    if getattr(config, "REMOVE_BODY_SHADING", True):
+        strip_para_shading_and_highlight(para)
     _set_style_safe(para, "Heading 3")
     pf = para.paragraph_format
     pf.alignment = WD_ALIGN_PARAGRAPH.LEFT
@@ -107,6 +114,8 @@ def _format_h2(para: Paragraph) -> None:
 
 
 def _format_h3(para: Paragraph) -> None:
+    if getattr(config, "REMOVE_BODY_SHADING", True):
+        strip_para_shading_and_highlight(para)
     _set_style_safe(para, "Heading 4")
     pf = para.paragraph_format
     pf.alignment = WD_ALIGN_PARAGRAPH.LEFT

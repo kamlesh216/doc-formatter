@@ -20,7 +20,7 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Inches, Pt
+from docx.shared import Inches, Pt, RGBColor
 
 from thesis_formatter.analyzer import analyse, ParaType
 from thesis_formatter.formatter import format_document
@@ -67,13 +67,13 @@ class TestNormalParagraph(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# 2. Bold / Italic paragraph — formatting must be preserved
+# 2. Bold / Italic paragraph — formatting tests
 # ---------------------------------------------------------------------------
 class TestBoldItalic(unittest.TestCase):
-    def test_bold_preserved(self):
+    def test_heading_bold_preserved(self):
         doc  = Document()
         para = doc.add_paragraph()
-        run  = para.add_run("Bold text")
+        run  = para.add_run("Chapter - I Introduction")
         run.bold = True
         path, _ = _save_and_reload(doc)
         out = path.replace(".docx", "_fmt.docx")
@@ -81,7 +81,91 @@ class TestBoldItalic(unittest.TestCase):
         result = Document(out)
         bold_runs = [r for p in result.paragraphs
                      for r in p.runs if r.bold]
-        self.assertGreater(len(bold_runs), 0, "Bold run was destroyed!")
+        self.assertGreater(len(bold_runs), 0, "Heading bold was destroyed!")
+        os.unlink(path); os.unlink(out)
+
+    def test_body_bold_stripped_by_default(self):
+        doc  = Document()
+        para = doc.add_paragraph("This is a normal body paragraph with some ")
+        run  = para.add_run("stray bold text")
+        run.bold = True
+        path, _ = _save_and_reload(doc)
+        out = path.replace(".docx", "_fmt.docx")
+        format_document(path, out)
+        result = Document(out)
+        body_runs = [r for p in result.paragraphs
+                     for r in p.runs if r.bold]
+        self.assertEqual(len(body_runs), 0, "Stray bold in body text was not stripped!")
+        os.unlink(path); os.unlink(out)
+
+    def test_shading_and_highlight_stripped(self):
+        doc  = Document()
+        para = doc.add_paragraph()
+        run  = para.add_run("Highlighted copy paste text")
+        run.font.highlight_color = 1  # Yellow
+        path, _ = _save_and_reload(doc)
+        out = path.replace(".docx", "_fmt.docx")
+        format_document(path, out)
+        result = Document(out)
+        for p in result.paragraphs:
+            for r in p.runs:
+                self.assertIsNone(r.font.highlight_color)
+        os.unlink(path); os.unlink(out)
+
+    def test_heading_shading_stripped(self):
+        doc  = Document()
+        para = doc.add_paragraph("5.4.5 Available nutrient(kg/ha)")
+        run  = para.runs[0]
+        run.font.highlight_color = 1  # Yellow highlight on heading
+        path, _ = _save_and_reload(doc)
+        out = path.replace(".docx", "_fmt.docx")
+        format_document(path, out)
+        result = Document(out)
+        for p in result.paragraphs:
+            for r in p.runs:
+                self.assertIsNone(r.font.highlight_color)
+        os.unlink(path); os.unlink(out)
+
+    def test_font_color_reset(self):
+        doc  = Document()
+        para = doc.add_paragraph("Discolored grey text")
+        run  = para.runs[0]
+        run.font.color.rgb = RGBColor(89, 89, 89)   # #595959 grey text
+        path, _ = _save_and_reload(doc)
+        out = path.replace(".docx", "_fmt.docx")
+        format_document(path, out)
+        result = Document(out)
+        para = result.paragraphs[0]
+        for r in para.runs:
+            # Custom grey color tag should be removed (None / default black)
+            self.assertIsNone(r.font.color.rgb)
+        os.unlink(path); os.unlink(out)
+
+    def test_complex_bold_stripped(self):
+        doc  = Document()
+        para = doc.add_paragraph("Normal body text ")
+        run  = para.add_run("with complex bold")
+        rPr  = run._r.get_or_add_rPr()
+        rPr.append(OxmlElement("w:bCs"))
+        path, _ = _save_and_reload(doc)
+        out = path.replace(".docx", "_fmt.docx")
+        format_document(path, out)
+        result = Document(out)
+        body_runs = [r for p in result.paragraphs for r in p.runs if r.bold]
+        self.assertEqual(len(body_runs), 0, "Complex script bold was not stripped!")
+        os.unlink(path); os.unlink(out)
+
+    def test_cross_run_and_non_breaking_spaces(self):
+        doc = Document()
+        para = doc.add_paragraph("The nutrient uptake was increased under elevated CO₂ treatments, \xa0")
+        para.add_run(" with the maximum uptake being recorded under T5 (550 ppm CO₂ +1°C) treatment in open field.")
+        path, _ = _save_and_reload(doc)
+        out = path.replace(".docx", "_fmt.docx")
+        format_document(path, out)
+        result = Document(out)
+        text = result.paragraphs[0].text
+        self.assertNotIn("  ", text, "Double space found in formatted paragraph!")
+        self.assertNotIn("\xa0", text, "Non-breaking space found in formatted paragraph!")
         os.unlink(path); os.unlink(out)
 
     def test_italic_preserved(self):

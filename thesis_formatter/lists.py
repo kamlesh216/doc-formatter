@@ -10,7 +10,12 @@ from docx.text.paragraph import Paragraph
 
 from . import config
 from .analyzer import DocAnalysis, ParaType
-from .utils import apply_font_to_para_runs, set_para_spacing, style_exists
+from .utils import (
+    apply_font_to_para_runs,
+    set_para_spacing,
+    style_exists,
+    strip_para_shading_and_highlight,
+)
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +62,8 @@ def _apply_number(doc: Document, para: Paragraph) -> None:
 
 
 def _common_list_fmt(para: Paragraph) -> None:
+    if getattr(config, "REMOVE_BODY_SHADING", True):
+        strip_para_shading_and_highlight(para)
     set_para_spacing(
         para,
         space_before=None,

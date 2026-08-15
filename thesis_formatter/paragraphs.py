@@ -17,8 +17,12 @@ from .analyzer import DocAnalysis, ParaType
 from .utils import (
     apply_font_to_para_runs,
     clean_run_text,
+    force_apply_font_to_para_runs,
+    normalize_para_spaces,
     set_para_spacing,
     set_widow_control,
+    strip_body_run_formatting,
+    strip_para_shading_and_highlight,
 )
 
 log = logging.getLogger(__name__)
@@ -65,12 +69,21 @@ def _format_body(para: Paragraph) -> None:
     para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     set_widow_control(para, True)
 
-    # Normalize whitespace per run — never modify content
+    # Strip background shading / theme fill / text highlights from copy-paste
+    if getattr(config, "REMOVE_BODY_SHADING", True):
+        strip_para_shading_and_highlight(para)
+
+    # Clean run text, reset discolored text colors, and strip unwanted bold (w:b, w:bCs, rStyle)
+    remove_bold = getattr(config, "REMOVE_BODY_BOLD", True)
     for run in para.runs:
         clean_run_text(run)
+        strip_body_run_formatting(run, remove_bold=remove_bold)
 
-    # Apply font only where run doesn't already specify it
-    apply_font_to_para_runs(para, config.BODY_FONT, config.BODY_SIZE)
+    # Normalize spaces across paragraph runs (non-breaking \xa0, multi-spaces, cross-run double spaces)
+    normalize_para_spaces(para)
+
+    # Forcefully apply Arial 12pt font to all body runs
+    force_apply_font_to_para_runs(para, config.BODY_FONT, config.BODY_SIZE)
 
 
 def _format_bibliography(para: Paragraph) -> None:

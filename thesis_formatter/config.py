@@ -25,9 +25,11 @@ PRINTABLE_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT   # ≈ 6.02 in
 # ---------------------------------------------------------------------------
 BODY_FONT          = "Arial"
 BODY_SIZE          = Pt(12)
-BODY_LINE_SPACING  = 1.15       # multiple (not Pt)
+BODY_LINE_SPACING  = 1.5        # multiple (1.5 line spacing for academic thesis)
 BODY_SPACE_BEFORE  = Pt(0)
 BODY_SPACE_AFTER   = Pt(6)
+REMOVE_BODY_BOLD   = True       # strip unwanted bold from regular body paragraphs
+REMOVE_BODY_SHADING = True      # strip background shading and text highlight from copy-pasted body text
 
 # ---------------------------------------------------------------------------
 # Heading fonts & sizes
