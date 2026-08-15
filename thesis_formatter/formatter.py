@@ -15,6 +15,7 @@ Runs all formatting modules in the correct order:
 """
 from __future__ import annotations
 
+import io
 import logging
 from dataclasses import dataclass
 from docx import Document
@@ -73,22 +74,31 @@ class FormatReport:
 # ---------------------------------------------------------------------------
 
 def format_document(
-    input_path: str,
-    output_path: str,
+    input_path: str | io.BytesIO,
+    output_path: str | io.BytesIO,
     show_analysis: bool = False,
 ) -> FormatReport:
     """
     Load input_path, apply all formatting, save to output_path.
+    Can accept file paths as strings or io.BytesIO stream objects.
     Returns a FormatReport.
     """
     import os
-    if not os.path.isfile(input_path):
-        raise FileNotFoundError(f"Input file not found: {input_path}")
 
-    log.info("Loading: %s", input_path)
-    doc = Document(input_path)
+    # 1. Loading
+    if isinstance(input_path, str):
+        if not os.path.isfile(input_path):
+            raise FileNotFoundError(f"Input file not found: {input_path}")
+        log.info("Loading from path: %s", input_path)
+        doc = Document(input_path)
+        report_in_path = input_path
+    else:
+        log.info("Loading from in-memory stream")
+        doc = Document(input_path)
+        report_in_path = "<stream>"
 
-    report = FormatReport(input_path=input_path, output_path=output_path)
+    report_out_path = output_path if isinstance(output_path, str) else "<stream>"
+    report = FormatReport(input_path=report_in_path, output_path=report_out_path)
 
     # --- Step 1: Analyse ------------------------------------------------
     log.info("Analysing document…")
@@ -130,7 +140,10 @@ def format_document(
     report.blanks_removed = _remove_excess_blanks(doc)
 
     # --- Save ----------------------------------------------------------
-    log.info("Saving: %s", output_path)
+    if isinstance(output_path, str):
+        log.info("Saving to path: %s", output_path)
+    else:
+        log.info("Saving to in-memory stream")
     doc.save(output_path)
 
     return report

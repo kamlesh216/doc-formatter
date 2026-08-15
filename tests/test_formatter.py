@@ -182,6 +182,22 @@ class TestBoldItalic(unittest.TestCase):
         self.assertGreater(len(italic_runs), 0, "Italic run was destroyed!")
         os.unlink(path); os.unlink(out)
 
+    def test_stream_processing(self):
+        doc = Document()
+        para = doc.add_paragraph("This paragraph has double  spaces.")
+        in_stream = io.BytesIO()
+        doc.save(in_stream)
+        in_stream.seek(0)
+        
+        out_stream = io.BytesIO()
+        report = format_document(in_stream, out_stream)
+        out_stream.seek(0)
+        
+        result = Document(out_stream)
+        self.assertEqual(len(result.paragraphs), 1)
+        self.assertNotIn("  ", result.paragraphs[0].text)
+        self.assertEqual(report.para_count, 1)
+
 
 # ---------------------------------------------------------------------------
 # 3. Superscript / Subscript
